@@ -1,0 +1,8 @@
+{
+  "name": "me.merlinds.tinyhookup",
+  "displayName": "Tiny Hookup",
+  "version": "0.0.1",
+  "unity": "2019.3",
+  "type": "tool",
+  "description": "Simple and lightweight plugin for graphs editing"
+}
