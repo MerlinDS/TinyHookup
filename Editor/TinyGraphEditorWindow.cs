@@ -50,9 +50,9 @@ namespace TinyHookup.Editor
 
         private void DrawMenu()
         {
-            GUI.BeginGroup(new Rect(0, 0, position.width, 24));
-            GUILayout.BeginHorizontal(GUILayout.Width(position.width / 4));
-            var selected = GUILayout.Toolbar(-1, new[] {"New", "Load", "Save"});
+            GUI.BeginGroup(new Rect(0, 0, position.width, 24), Label, "ProgressBarBack");
+            GUILayout.BeginHorizontal();
+            var selected = GUILayout.Toolbar(-1, new[] {"New", "Load", "Save"}, GUILayout.Width(position.width / 4));
             GUILayout.EndHorizontal();
             GUI.EndGroup();
             if (selected < 0)
@@ -63,6 +63,7 @@ namespace TinyHookup.Editor
                 Clear();
                 CreateGraph();
             }
+
             if (selected == 1)
                 OnLoad();
             if (selected == 2)
@@ -71,11 +72,11 @@ namespace TinyHookup.Editor
 
         private void DrawGraph(bool selected)
         {
-           if (Graph == null)
+            if (Graph == null)
                 return;
-                
-           foreach (var node in Graph.Nodes.Where(x => selected == Selector.IsSelected(x)))
-               TinyGUI.DrawNode(node, selected, Graph.HasInEdge(node), Graph.HasOutEdge(node));
+
+            foreach (var node in Graph.Nodes.Where(x => selected == Selector.IsSelected(x)))
+                TinyGUI.DrawNode(node, selected, Graph.HasInEdge(node), Graph.HasOutEdge(node));
 
             foreach (var edge in Graph.Edges.Where(x => selected == Selector.IsSelected(x)))
             {

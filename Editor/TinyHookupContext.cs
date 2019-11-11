@@ -5,6 +5,7 @@ namespace TinyHookup.Editor
 {
     public abstract class TinyHookupContext : EditorWindow
     {
+        public string Label { get; set; }
         public TinyGraph Graph { get; private set; }
         public TinySelector Selector { get; } = new TinySelector();
 
