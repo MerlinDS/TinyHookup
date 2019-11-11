@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -39,6 +40,7 @@ namespace TinyHookup.Editor
                         _selector.Clean();
                         GUI.changed = true;
                     }
+
                     break;
                 case EventType.ScrollWheel:
                     /*_scale = Mathf.Clamp(_scale + @event.delta.y * 0.01F, 0.5F, 1);
@@ -135,7 +137,7 @@ namespace TinyHookup.Editor
             if (NewEdge)
             {
                 var @in = _graph.GetNodeUnder(@event.mousePosition);
-                if(@in != null)
+                if (@in != null)
                     _graph.CreateEdge(_graph.GetNodeUnder(StartPosition), @in);
                 else
                     ProcessContextMenu(@event.mousePosition);
@@ -158,9 +160,19 @@ namespace TinyHookup.Editor
             genericMenu.AddItem(new GUIContent("Add node"), false, () =>
             {
                 var @in = _graph.CreateNode("Node", mousePosition);
-                if(connect)
+                if (connect)
                     _graph.CreateEdge(@out, @in);
             });
+            if (@out != null)
+            {
+                genericMenu.AddItem(new GUIContent("Copy node"), false, () => { });
+                genericMenu.AddItem(new GUIContent("Delete node"), false, () => _graph.RemoveNodes(new[] {@out.Id}));
+            }
+            else
+            {
+                genericMenu.AddItem(new GUIContent("Paste node"), false, () => { });
+            }
+
             genericMenu.ShowAsContext();
         }
 
