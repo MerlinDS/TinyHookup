@@ -6,39 +6,31 @@ namespace TinyHookup.Editor
     [CustomEditor(typeof(TinyEdge))]
     public sealed class EdgeEditor : TinyDataEditor
     {
-        private TinyGraph _graph;
         private ITinyConnection _edge;
 
         protected override TinyInspectorType InspectorType => TinyInspectorType.Edge;
 
-        protected override void InternalOnEnable()
-        {
-            _graph = serializedObject.context as TinyGraph;
+        protected override void InternalOnEnable() => 
             _edge = serializedObject.targetObject as ITinyConnection;
-        }
 
-        private void OnDisable()
-        {
+        protected override void OnDisable() => 
             _edge = null;
-            _graph = null;
-        }
 
         public override void OnInspectorGUI()
         {
-            if (_graph == null)
-            {
-                Debug.LogWarning("Can't find graph");
-                return;
-            }
-            
-            var @out = _graph.GetNode(_edge.Out);
-            EditorGUILayout.LabelField("Out", @out.Title);
-            var @in = _graph.GetNode(_edge.In);
-            EditorGUILayout.LabelField("In", @in.Title);
+            var @in = Context.Graph.GetNode(_edge.In);
+            var @out = Context.Graph.GetNode(_edge.Out);
+            EditorGUILayout.BeginHorizontal();
+            if(GUILayout.Button(@out.Title))
+                Context.Selector.AddSingle(@out);
+            EditorGUILayout.LabelField("=>", GUILayout.Width(22));
+            if (GUILayout.Button(@in.Title))
+                Context.Selector.AddSingle(@in);
+            EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
             if (GUILayout.Button("Remove this edge"))
             {
-                _graph.RemoveEdge(_edge);
+                Context.Graph.RemoveEdge(_edge);
                 return;
             }
             

@@ -9,14 +9,14 @@ namespace TinyHookup.Editor
     {
         private readonly List<TinyNode> _nodes = new List<TinyNode>();
         private readonly List<TinyEdge> _edges = new List<TinyEdge>();
-        
+
         public Vector2 Offset { get; set; }
         public IEnumerable<TinyNode> Nodes => _nodes;
 
         public IEnumerable<TinyEdge> Edges => _edges;
 
-        public Type NodeDataDrawer { get; set; }
-        public Type EdgeDataDrawer { get; set; }
+        public event Action<TinyNode> OnCreateNode;
+        public event Action<TinyEdge> OnCreateEdge;
 
         public static TinyGraph Create() => CreateInstance<TinyGraph>();
 
@@ -36,6 +36,7 @@ namespace TinyHookup.Editor
         {
             var node = TinyNode.Create(label, position);
             node.Data = data;
+            OnCreateNode?.Invoke(node);
             _nodes.Add(node);
             return node;
         }
@@ -46,10 +47,17 @@ namespace TinyHookup.Editor
         public TinyEdge GetEdge(Guid @in, Guid @out) =>
             _edges.First(e => e.In == @in && e.Out == @out);
 
+        public IEnumerable<TinyEdge> GetEdges(Guid @out) =>
+            _edges.Where(e => e.Out == @out);
+
         public void CreateEdge(TinyNode @out, TinyNode @in, object data = default)
         {
-            if(@in.Id != @out.Id && !_edges.Any(x=>x.In == @in.Id && x.Out == @out.Id))
-                _edges.Add(TinyEdge.Create(@out.Id, @in.Id, data));
+            if (@in.Id == @out.Id || _edges.Any(x => x.In == @in.Id && x.Out == @out.Id))
+                return;
+            
+            var edge = TinyEdge.Create(@out.Id, @in.Id, data);
+            OnCreateEdge?.Invoke(edge);
+            _edges.Add(edge);
         }
 
         public bool HasInEdge(TinyNode node) =>
@@ -61,12 +69,12 @@ namespace TinyHookup.Editor
         public IEnumerable<TinyNode> GetNodes(IEnumerable<Guid> ids)
             => _nodes.Where(x => ids.Contains(x.Id));
 
-        public void RemoveEdge(ITinyConnection edge) => 
+        public void RemoveEdge(ITinyConnection edge) =>
             RemoveEdge(edge.In, edge.Out);
 
         public void RemoveEdges(Guid id)
         {
-            foreach (var edge in  _edges.Where(x => x.In == id || x.Out == id).ToList())
+            foreach (var edge in _edges.Where(x => x.In == id || x.Out == id).ToList())
                 RemoveEdge(edge);
         }
 

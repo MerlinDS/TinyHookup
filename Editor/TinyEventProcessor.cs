@@ -26,6 +26,8 @@ namespace TinyHookup.Editor
 
         private void Process(Event @event)
         {
+            if (_graph == null)
+                return;
             // ReSharper disable once SwitchStatementMissingSomeCases
             switch (@event.type)
             {

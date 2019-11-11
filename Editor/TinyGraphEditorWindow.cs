@@ -1,39 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
 namespace TinyHookup.Editor
 {
-    public abstract class TinyGraphEditorWindow : EditorWindow
+    public abstract class TinyGraphEditorWindow : TinyHookupContext
     {
-        private TinyGraph _graph;
-        private readonly TinySelector _selector = new TinySelector();
         private readonly TinyEventProcessor _eventProcessor = new TinyEventProcessor();
-
-        public event Action OnLoad;
-        public event Action<IEnumerable<TinyNode>, IEnumerable<TinyEdge>> OnSave;
 
         protected virtual void OnEnable()
         {
-            if (_graph != null)
-                _graph.Dispose();
+            Selector.OnNodeSelectionChanged += guid =>
+                Selection.SetActiveObjectWithContext(Graph.GetNode(guid), this);
 
-            _graph = TinyGraph.Create();
-
-            _selector.OnNodeSelectionChanged += guid =>
-                Selection.SetActiveObjectWithContext(_graph.GetNode(guid), _graph);
-
-            _selector.OnEdgeSelectionChanged += (@in, @out) =>
-                Selection.SetActiveObjectWithContext(_graph.GetEdge(@in, @out), _graph);
+            Selector.OnEdgeSelectionChanged += (@in, @out) =>
+                Selection.SetActiveObjectWithContext(Graph.GetEdge(@in, @out), this);
         }
 
         protected virtual void OnDisable() => Clear();
 
         private void OnGUI()
         {
-            _eventProcessor.Process(_graph, _selector);
+            _eventProcessor.Process(Graph, Selector);
 
             DrawGraph();
             if (_eventProcessor.MultiSelectionOn)
@@ -48,16 +36,13 @@ namespace TinyHookup.Editor
 
         private void OnInspectorUpdate()
         {
-            if (!_selector.IsEmpty)
+            if (!Selector.IsEmpty)
                 Repaint();
         }
 
         private void DrawGraph()
         {
-            if (_graph == null)
-                return;
-
-            TinyGUI.DrawGrid(_graph.Offset, position, 1);
+            TinyGUI.DrawGrid(Graph == null ? Vector2.zero : Graph.Offset, position, 1);
             DrawGraph(false);
             DrawGraph(true);
             DrawMenu();
@@ -67,65 +52,51 @@ namespace TinyHookup.Editor
         {
             GUI.BeginGroup(new Rect(0, 0, position.width, 24));
             GUILayout.BeginHorizontal(GUILayout.Width(position.width / 4));
-            var selected = GUILayout.Toolbar(-1, new[] {"Load", "Save", "Close"});
+            var selected = GUILayout.Toolbar(-1, new[] {"New", "Load", "Save"});
             GUILayout.EndHorizontal();
             GUI.EndGroup();
-            if(selected < 0)
+            if (selected < 0)
                 return;
-            
-            if(selected == 0)
-                OnLoad?.Invoke();
-            if(selected == 1)
-                OnSave?.Invoke(_graph.Nodes.ToArray(), _graph.Edges.ToArray());
-            if(selected == 2)
+
+            if (selected == 0)
+            {
                 Clear();
+                CreateGraph();
+            }
+            if (selected == 1)
+                OnLoad();
+            if (selected == 2)
+                OnSave();
         }
 
         private void DrawGraph(bool selected)
         {
-            foreach (var node in _graph.Nodes.Where(x => selected == _selector.IsSelected(x)))
-                TinyGUI.DrawNode(node, selected, _graph.HasInEdge(node), _graph.HasOutEdge(node));
-
-            foreach (var edge in _graph.Edges.Where(x => selected == _selector.IsSelected(x)))
-            {
-                var @out = TinyGUI.GetOutRect(_graph.GetNode(edge.Out));
-                var @in = TinyGUI.GetInRect(_graph.GetNode(edge.In));
-                if (TinyGUI.DrawEdge(@out, @in, selected))
-                    _selector.AddSingle(edge);
-            }
-        }
-
-        protected void SetNodeDataDrawer<TDrawer>() where TDrawer : ITinyDataDrawer =>
-            _graph.NodeDataDrawer = typeof(TDrawer);
-
-        protected void SetEdgeDataDrawer<TDrawer>() where TDrawer : ITinyDataDrawer =>
-            _graph.EdgeDataDrawer = typeof(TDrawer);
-
-        // ReSharper disable once ParameterHidesMember
-        protected Guid CreateNode(string label, Vector2 position, object data = default) =>
-            _graph.CreateNode(label, position, data).Id;
-
-        protected void CreateEdge(Guid @out, Guid @in, object data = default)
-        {
-            var outNode = _graph.GetNode(@out);
-            var inNode = _graph.GetNode(@in);
-            if (outNode == null || inNode == null)
-            {
-                Debug.LogError("One of nodes was not created yet. Use CreateNode method!");
+           if (Graph == null)
                 return;
-            }
+                
+           foreach (var node in Graph.Nodes.Where(x => selected == Selector.IsSelected(x)))
+               TinyGUI.DrawNode(node, selected, Graph.HasInEdge(node), Graph.HasOutEdge(node));
 
-            _graph.CreateEdge(outNode, inNode, data);
+            foreach (var edge in Graph.Edges.Where(x => selected == Selector.IsSelected(x)))
+            {
+                var @out = TinyGUI.GetOutRect(Graph.GetNode(edge.Out));
+                var @in = TinyGUI.GetInRect(Graph.GetNode(edge.In));
+                if (TinyGUI.DrawEdge(@out, @in, selected))
+                    Selector.AddSingle(edge);
+            }
         }
 
-        protected void Clear()
+        protected override void Clear()
         {
             if (Selection.activeObject is TinyEdge)
                 Selection.activeObject = null;
             if (Selection.activeObject is TinyNode)
                 Selection.activeObject = null;
 
-            _graph.Dispose();
+            base.Clear();
         }
+
+        protected abstract void OnLoad();
+        protected abstract void OnSave();
     }
 }

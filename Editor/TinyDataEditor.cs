@@ -7,6 +7,8 @@ namespace TinyHookup.Editor
     public abstract class TinyDataEditor : UnityEditor.Editor
     {
         private ITinyDataDrawer _drawer;
+        protected TinyHookupContext Context { get; private set; }
+
 
         protected abstract TinyInspectorType InspectorType { get; }
 
@@ -14,9 +16,13 @@ namespace TinyHookup.Editor
         {
             try
             {
-                if (serializedObject.context is TinyGraph context)
-                    _drawer = (ITinyDataDrawer) Activator.CreateInstance(
-                        InspectorType == TinyInspectorType.Edge ? context.EdgeDataDrawer : context.NodeDataDrawer);
+                Context = serializedObject.context as TinyHookupContext;
+                if(Context == null)
+                    throw new ArgumentException("Can't find context");
+                    
+                var drawerType = InspectorType == TinyInspectorType.Edge ? Context.EdgeDataDrawer : Context.NodeDataDrawer;
+                if(drawerType != null)
+                    _drawer = (ITinyDataDrawer) Activator.CreateInstance(drawerType);
                 InternalOnEnable();
             }
 #pragma warning disable 168
@@ -25,6 +31,12 @@ namespace TinyHookup.Editor
             {
                 DestroyImmediate(this);
             }
+        }
+
+        protected virtual void OnDisable()
+        {
+            _drawer = null;
+            Context = null;
         }
 
         protected abstract void InternalOnEnable();
@@ -50,7 +62,7 @@ namespace TinyHookup.Editor
             if (!(serializedObject.targetObject is ITinyDataProvider dataProvider))
                 return;
 
-            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             EditorGUILayout.LabelField("Data", EditorStyles.boldLabel);
             EditorGUI.BeginChangeCheck();
             dataProvider.Data = _drawer.OnGUI(dataProvider.Data);

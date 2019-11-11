@@ -33,17 +33,19 @@ namespace TinyHookup.Editor
             if (node == null || IsSelected(node))
                 return;
 
+            Out = In = Guid.Empty;
             _selections.Clear();
             _selections.Add(node.Id);
             OnNodeSelectionChanged?.Invoke(node.Id);
         }
 
         public bool IsEmpty => _selections.Count == 0 && In == Guid.Empty && Out == Guid.Empty;
-        public void Clean()
+        public void Clean(bool silently = false)
         {
             _selections.Clear();
             Out = In = Guid.Empty;
-            OnNodeSelectionChanged?.Invoke(Guid.Empty);
+            if(!silently)
+                OnNodeSelectionChanged?.Invoke(Guid.Empty);
         }
 
         public bool IsSelected(TinyNode node) =>
