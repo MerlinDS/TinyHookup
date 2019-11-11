@@ -3,11 +3,13 @@ using UnityEngine;
 
 namespace TinyHookup.Editor
 {
-    public sealed class TinyNode : ScriptableObject, ITinyNode
+    public sealed class TinyNode : ScriptableObject, ITinyDataProvider
     {
         public Guid Id;
-        public string Title { get; set; }
-        public Vector2 Position { get; set; }
+
+        public string Title;
+
+        public Vector2 Position;
         public object Data { get; set; }
 
         public static TinyNode Create(string title, Vector2 position, Guid id = default)
@@ -18,11 +20,5 @@ namespace TinyHookup.Editor
             node.Title = title;
             return node;
         }
-    }
-
-    public interface ITinyNode : ITinyDataProvider
-    {
-        string Title { get; set; }
-        Vector2 Position { get; set; }
     }
 }

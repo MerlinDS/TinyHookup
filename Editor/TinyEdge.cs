@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace TinyHookup.Editor
 {
-    public class TinyEdge : ScriptableObject, ITinyEdge
+    public class TinyEdge : ScriptableObject, ITinyConnection, ITinyDataProvider
     {
         public Guid Out { get; private set; }
         public Guid In { get; private set; }
@@ -18,11 +18,6 @@ namespace TinyHookup.Editor
             tinyEdge.Data = data;
             return tinyEdge;
         }
-    }
-    
-    public interface ITinyEdge : ITinyConnection, ITinyDataProvider
-    {
-        
     }
     public interface ITinyConnection
     {
