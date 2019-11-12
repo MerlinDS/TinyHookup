@@ -18,6 +18,9 @@ namespace TinyHookup.Editor
 
         public bool NewEdge { get; private set; }
 
+        public float Scale { get; set; } = 1;
+        private Vector2 ZoomOffset { get; set; } = Vector2.one;
+
         public void OnEnable(TinySelector selector, TinyBuffer buffer)
         {
             _selector = selector;
@@ -34,11 +37,13 @@ namespace TinyHookup.Editor
         {
             if (_graph == null)
                 return;
+
+            CurrentPosition = @event.mousePosition;
             // ReSharper disable once SwitchStatementMissingSomeCases
             switch (@event.type)
             {
                 case EventType.KeyUp:
-                    CurrentPosition = @event.mousePosition;
+
                     if (@event.keyCode == KeyCode.Delete)
                     {
                         _graph.RemoveNodes(_selector);
@@ -46,23 +51,22 @@ namespace TinyHookup.Editor
                         _selector.Clean();
                         GUI.changed = true;
                     }
-                    else if(@event.keyCode == KeyCode.C && @event.control)
+                    else if (@event.keyCode == KeyCode.C && @event.control)
                         _buffer.Copy();
-                    else if(@event.keyCode == KeyCode.V && @event.control)
-                        _buffer.Paste();
+                    else if (@event.keyCode == KeyCode.V && @event.control)
+                        _buffer.Paste(Zoomed(CurrentPosition));
 
                     break;
                 case EventType.ScrollWheel:
-                    /*_scale = Mathf.Clamp(_scale + @event.delta.y * 0.01F, 0.5F, 1);
-                    UnityEngine.GUI.changed = true;*/
+                    Scale = Mathf.Clamp(Scale + @event.delta.y * 0.01F, 0.25F, 1);
+                    ZoomOffset = new Vector2(1 / Scale, 1 / Scale);
+                    GUI.changed = true;
                     break;
                 case EventType.MouseDown:
                     StartPosition = @event.mousePosition;
-                    CurrentPosition = @event.mousePosition;
                     GUI.changed = ProcessMouseDown(@event);
                     break;
                 case EventType.MouseDrag:
-                    CurrentPosition = @event.mousePosition;
                     GUI.changed = ProcessDrag(@event);
                     break;
                 case EventType.MouseUp:
@@ -82,8 +86,8 @@ namespace TinyHookup.Editor
             if (@event.button == 1)
             {
                 foreach (var node in _graph.Nodes)
-                    node.Position += @event.delta;
-                _graph.Offset += @event.delta;
+                    node.Position += Zoomed(@event.delta);
+                _graph.Offset += Zoomed(@event.delta);
                 @event.Use();
                 return true;
             }
@@ -93,7 +97,7 @@ namespace TinyHookup.Editor
 
             //Dragging of selected nodes
             foreach (var node in _selector)
-                _graph.GetNode(node).Position += @event.delta;
+                _graph.GetNode(node).Position += Zoomed(@event.delta);
 
             @event.Use();
             return true;
@@ -112,7 +116,7 @@ namespace TinyHookup.Editor
             if (@event.button != 0)
                 return false;
 
-            var node = _graph.GetNodeUnder(CurrentPosition, _selector);
+            var node = _graph.GetNodeUnder(Zoomed(CurrentPosition), _selector);
             if (node == default)
             {
                 _selector.Clean();
@@ -122,9 +126,9 @@ namespace TinyHookup.Editor
 
             //Try Select node or edge on left mouse click
             var outRect = TinyGUI.GetOutRect(node);
-            NewEdge = outRect.Contains(CurrentPosition);
+            NewEdge = outRect.Contains(Zoomed(CurrentPosition));
             if (NewEdge)
-                StartPosition = outRect.center;
+                StartPosition = outRect.center / ZoomOffset;
 
             _selector.AddSingle(node);
             return true;
@@ -135,8 +139,8 @@ namespace TinyHookup.Editor
             if (@event.button == 1)
             {
                 //End of mouse right click
-                if (Vector2.Distance(@event.mousePosition, StartPosition) < 1)
-                    ProcessContextMenu(@event.mousePosition);
+                if (Vector2.Distance(Zoomed(CurrentPosition), Zoomed(StartPosition)) < 1)
+                    ProcessContextMenu(Zoomed(CurrentPosition));
                 return false;
             }
 
@@ -146,18 +150,18 @@ namespace TinyHookup.Editor
             //End of mouse left click
             if (NewEdge)
             {
-                var @in = _graph.GetNodeUnder(@event.mousePosition);
+                var @in = _graph.GetNodeUnder(Zoomed(CurrentPosition));
                 if (@in != null)
-                    _graph.CreateEdge(_graph.GetNodeUnder(StartPosition), @in);
+                    _graph.CreateEdge(_graph.GetNodeUnder(Zoomed(StartPosition)), @in);
                 else
-                    ProcessContextMenu(@event.mousePosition);
+                    ProcessContextMenu(Zoomed(CurrentPosition));
                 return true;
             }
 
             if (!MultiSelectionOn)
                 return false;
 
-            var selection = GetSelectionRect(StartPosition, CurrentPosition);
+            var selection = GetSelectionRect(Zoomed(StartPosition), Zoomed(CurrentPosition));
             _selector.Add(_graph.Nodes.Where(x => selection.Overlaps(TinyGUI.GetNodeRect(x.Position))));
             return true;
         }
@@ -165,7 +169,7 @@ namespace TinyHookup.Editor
         private void ProcessContextMenu(Vector2 mousePosition)
         {
             var connect = NewEdge;
-            var @out = _graph.GetNodeUnder(StartPosition);
+            var @out = _graph.GetNodeUnder(Zoomed(StartPosition));
             var genericMenu = new GenericMenu();
             genericMenu.AddItem(new GUIContent("Add node"), false, () =>
             {
@@ -193,5 +197,7 @@ namespace TinyHookup.Editor
             var selection = new Rect(minX, minY, maxX - minX, maxY - minY);
             return selection;
         }
+
+        private Vector2 Zoomed(Vector2 point) => point * ZoomOffset;
     }
 }

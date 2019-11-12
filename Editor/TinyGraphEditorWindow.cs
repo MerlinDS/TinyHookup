@@ -13,7 +13,7 @@ namespace TinyHookup.Editor
         {
             _buffer.OnEnable(Selector);
             _eventProcessor.OnEnable(Selector, _buffer);
-            
+
             Selector.OnNodeSelectionChanged += guid =>
                 Selection.SetActiveObjectWithContext(Graph.GetNode(guid), this);
 
@@ -29,6 +29,7 @@ namespace TinyHookup.Editor
             _eventProcessor.Process(Graph);
 
             DrawGraph();
+            
             if (_eventProcessor.MultiSelectionOn)
                 TinyGUI.DrawMultiSelectionRect(_eventProcessor.StartPosition, _eventProcessor.CurrentPosition);
 
@@ -47,32 +48,35 @@ namespace TinyHookup.Editor
 
         private void DrawGraph()
         {
-            TinyGUI.DrawGrid(Graph == null ? Vector2.zero : Graph.Offset, position, 1);
+            var rect = TinyGUI.BeginZoom(_eventProcessor.Scale);
+            TinyGUI.DrawGrid(Graph == null ? Vector2.zero : Graph.Offset, rect);
             DrawGraph(false);
             DrawGraph(true);
+            TinyGUI.EndZoom();
             DrawMenu();
         }
 
         private void DrawMenu()
         {
             GUI.BeginGroup(new Rect(0, 0, position.width, 24), Label, "ProgressBarBack");
-            GUILayout.BeginHorizontal();
-            var selected = GUILayout.Toolbar(-1, new[] {"New", "Load", "Save"}, GUILayout.Width(position.width / 4));
-            GUILayout.EndHorizontal();
+            var selected = GUI.Toolbar(new Rect(2, 2, position.width / 4, 20), -1, new[] {"New", "Load", "Save"});
             GUI.EndGroup();
-            if (selected < 0)
-                return;
 
-            if (selected == 0)
+            switch (selected)
             {
-                Clear();
-                CreateGraph();
+                case 0:
+                    Clear();
+                    CreateGraph();
+                    break;
+                case 1:
+                    OnLoad();
+                    break;
+                case 2:
+                    OnSave();
+                    break;
+                default:
+                    return;
             }
-
-            if (selected == 1)
-                OnLoad();
-            if (selected == 2)
-                OnSave();
         }
 
         private void DrawGraph(bool selected)

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace TinyHookup.Editor
 {
-    public static class TinyGUI
+    public static partial class TinyGUI
     {
         #region Node
 
@@ -49,11 +49,11 @@ namespace TinyHookup.Editor
             return Handles.Button((@in + @out) * 0.5f, Quaternion.identity, Styles.EdgeSize, Styles.EdgePickSize,
                                   Handles.RectangleHandleCap);
         }
-        
-        public static void DrawGrid(Vector2 offset, Rect position, float scale)
+
+        public static void DrawGrid(Vector2 offset, Rect position)
         {
-            DrawGrid(offset, position, 20 * scale, 0.4f, Color.gray);
-            DrawGrid(offset, position, 100 * scale, 0.8f, Color.gray);
+            DrawGrid(offset, position, 20, 0.4f, Color.gray);
+            DrawGrid(offset, position, 100, 0.8f, Color.gray);
         }
 
         private static void DrawGrid(Vector2 offset, Rect position, float gridSpacing, float gridOpacity,
@@ -86,6 +86,7 @@ namespace TinyHookup.Editor
         #region Styles
 
         private static InternalStyles _styles;
+
         // ReSharper disable once ConvertToNullCoalescingCompoundAssignment
         private static InternalStyles Styles => _styles ?? (_styles = new InternalStyles());
 
@@ -125,6 +126,21 @@ namespace TinyHookup.Editor
                 new Vector3(start.x, current.y), current,
                 current, new Vector3(current.x, start.y),
                 new Vector3(current.x, start.y), start
+            });
+            Handles.color = temp;
+            GUI.changed = true;
+        }
+        
+        public static void DrawPoint(Vector2 position, float size, Color color)
+        {
+            var temp = Handles.color;
+            Handles.color = color;
+            Handles.DrawLines(new Vector3[]
+            {
+                new Vector2(position.x - size, position.y),
+                new Vector2(position.x + size, position.y),
+                new Vector2(position.x, position.y - size),
+                new Vector2(position.x, position.y + size),
             });
             Handles.color = temp;
             GUI.changed = true;
