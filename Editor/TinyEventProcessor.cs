@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -7,8 +6,9 @@ namespace TinyHookup.Editor
 {
     public class TinyEventProcessor
     {
-        private TinyGraph _graph;
         private TinySelector _selector;
+        private TinyBuffer _buffer;
+        private TinyGraph _graph;
 
         public bool MultiSelectionOn { get; private set; }
 
@@ -18,10 +18,15 @@ namespace TinyHookup.Editor
 
         public bool NewEdge { get; private set; }
 
-        public void Process(TinyGraph graph, TinySelector selector)
+        public void OnEnable(TinySelector selector, TinyBuffer buffer)
+        {
+            _selector = selector;
+            _buffer = buffer;
+        }
+
+        public void Process(TinyGraph graph)
         {
             _graph = graph;
-            _selector = selector;
             Process(Event.current);
         }
 
@@ -33,6 +38,7 @@ namespace TinyHookup.Editor
             switch (@event.type)
             {
                 case EventType.KeyUp:
+                    CurrentPosition = @event.mousePosition;
                     if (@event.keyCode == KeyCode.Delete)
                     {
                         _graph.RemoveNodes(_selector);
@@ -40,6 +46,10 @@ namespace TinyHookup.Editor
                         _selector.Clean();
                         GUI.changed = true;
                     }
+                    else if(@event.keyCode == KeyCode.C && @event.control)
+                        _buffer.Copy();
+                    else if(@event.keyCode == KeyCode.V && @event.control)
+                        _buffer.Paste();
 
                     break;
                 case EventType.ScrollWheel:
@@ -163,15 +173,13 @@ namespace TinyHookup.Editor
                 if (connect)
                     _graph.CreateEdge(@out, @in);
             });
-            if (@out != null)
+            /*if (@out != null)
             {
-                genericMenu.AddItem(new GUIContent("Copy node"), false, () => { });
-                genericMenu.AddItem(new GUIContent("Delete node"), false, () => _graph.RemoveNodes(new[] {@out.Id}));
+                genericMenu.AddItem(new GUIContent("Copy"), false, () => Copy(@out));
+                genericMenu.AddItem(new GUIContent("Delete"), false, () => _graph.RemoveNodes(new[] {@out.Id}));
             }
-            else
-            {
-                genericMenu.AddItem(new GUIContent("Paste node"), false, () => { });
-            }
+            else if(!string.IsNullOrEmpty(EditorGUIUtility.systemCopyBuffer))
+                genericMenu.AddItem(new GUIContent("Paste"), false, Paste);*/
 
             genericMenu.ShowAsContext();
         }

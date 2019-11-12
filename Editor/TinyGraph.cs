@@ -16,6 +16,9 @@ namespace TinyHookup.Editor
         public IEnumerable<TinyEdge> Edges => _edges;
 
         public event Action<TinyNode> OnCreateNode;
+        
+        public event Func<object, object> OnCopyNode;
+        public event Func<object, object> OnCopyEdge;
         public event Action<TinyEdge> OnCreateEdge;
 
         public static TinyGraph Create() => CreateInstance<TinyGraph>();
@@ -40,6 +43,14 @@ namespace TinyHookup.Editor
             _nodes.Add(node);
             return node;
         }
+        
+        public TinyNode CopyNode(TinyNode source, Vector2 position)
+        {
+            var node = TinyNode.Create($"{source.Title} Copy", position);
+            node.Data = OnCopyNode?.Invoke(source.Data);
+            _nodes.Add(node);
+            return node;
+        }
 
         public TinyNode GetNode(Guid id) =>
             _nodes.FirstOrDefault(x => x.Id == id);
@@ -50,15 +61,21 @@ namespace TinyHookup.Editor
         public IEnumerable<TinyEdge> GetEdges(Guid @out) =>
             _edges.Where(e => e.Out == @out);
 
-        public void CreateEdge(TinyNode @out, TinyNode @in, object data = default)
+        public void CreateEdge(TinyNode @out, TinyNode @in, object data = default) => 
+            CreateEdge(@out.Id, @in.Id, data);
+
+        public void CreateEdge(Guid @out, Guid @in, object data = default)
         {
-            if (@in.Id == @out.Id || _edges.Any(x => x.In == @in.Id && x.Out == @out.Id))
+            if (@in == @out || _edges.Any(x => x.In == @in && x.Out == @out))
                 return;
             
-            var edge = TinyEdge.Create(@out.Id, @in.Id, data);
+            var edge = TinyEdge.Create(@out, @in, data);
             OnCreateEdge?.Invoke(edge);
             _edges.Add(edge);
         }
+
+        public void CopyEdge(Guid @out, Guid @in, object data) => 
+            _edges.Add(TinyEdge.Create(@out, @in, OnCopyEdge?.Invoke(data)));
 
         public bool HasInEdge(TinyNode node) =>
             _edges.Any(x => x.In == node.Id);

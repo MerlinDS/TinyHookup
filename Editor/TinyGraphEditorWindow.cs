@@ -6,10 +6,14 @@ namespace TinyHookup.Editor
 {
     public abstract class TinyGraphEditorWindow : TinyHookupContext
     {
+        private readonly TinyBuffer _buffer = new TinyBuffer();
         private readonly TinyEventProcessor _eventProcessor = new TinyEventProcessor();
 
         protected virtual void OnEnable()
         {
+            _buffer.OnEnable(Selector);
+            _eventProcessor.OnEnable(Selector, _buffer);
+            
             Selector.OnNodeSelectionChanged += guid =>
                 Selection.SetActiveObjectWithContext(Graph.GetNode(guid), this);
 
@@ -21,7 +25,8 @@ namespace TinyHookup.Editor
 
         private void OnGUI()
         {
-            _eventProcessor.Process(Graph, Selector);
+            _buffer.OnUpdate(Graph);
+            _eventProcessor.Process(Graph);
 
             DrawGraph();
             if (_eventProcessor.MultiSelectionOn)
@@ -94,6 +99,7 @@ namespace TinyHookup.Editor
             if (Selection.activeObject is TinyNode)
                 Selection.activeObject = null;
 
+            _buffer.Clear();
             base.Clear();
         }
 

@@ -5,7 +5,7 @@ namespace TinyHookup.Editor
 {
     public abstract class TinyHookupContext : EditorWindow
     {
-        public string Label { get; set; }
+        protected string Label { get; set; }
         public TinyGraph Graph { get; private set; }
         public TinySelector Selector { get; } = new TinySelector();
 
@@ -26,6 +26,8 @@ namespace TinyHookup.Editor
             Graph = TinyGraph.Create();
             Graph.OnCreateNode += OnCreateNode;
             Graph.OnCreateEdge += OnCreateEdge;
+            Graph.OnCopyNode += OnCopyNode;
+            Graph.OnCopyEdge += OnCopyEdge;
         }
 
         protected virtual void Clear()
@@ -35,9 +37,21 @@ namespace TinyHookup.Editor
             {
                 Graph.OnCreateNode -= OnCreateNode;
                 Graph.OnCreateEdge -= OnCreateEdge;
+                Graph.OnCopyNode -= OnCopyNode;
+                Graph.OnCopyEdge -= OnCopyEdge;
                 Graph.Dispose();
             }
             Graph = null;
+        }
+
+        protected virtual object OnCopyNode(object data)
+        {
+            return data;
+        }
+        
+        protected virtual object OnCopyEdge(object data)
+        {
+            return data;
         }
 
         protected virtual void OnCreateNode(TinyNode node)
