@@ -9,11 +9,11 @@ namespace TinyHookup.Editor
     {
         private TinySelector _selector;
         private TinyGraph _graph;
-        
+
         private readonly List<Guid> _copyBuffer = new List<Guid>();
         private Vector2 _mousePosition;
 
-        public void OnEnable(TinySelector selector) => 
+        public void OnEnable(TinySelector selector) =>
             _selector = selector;
 
         public void OnUpdate(TinyGraph graph)
@@ -36,7 +36,7 @@ namespace TinyHookup.Editor
 
             var map = PasteNodes(nodes, offset);
             PasteEdges(map);
-            
+
             _selector.Add(map.Values.Select(_graph.GetNode));
             GUI.changed = true;
         }
@@ -56,7 +56,7 @@ namespace TinyHookup.Editor
             var map = new Dictionary<Guid, Guid>();
             foreach (var source in nodes)
             {
-                var position = _mousePosition + (source.Position - offset);
+                var position = offset + source.Position;
                 var copy = _graph.CopyNode(source, position);
                 map.Add(source.Id, copy.Id);
             }
@@ -64,12 +64,8 @@ namespace TinyHookup.Editor
             return map;
         }
 
-        private static Vector2 GetPositionOffset(IReadOnlyCollection<TinyNode> nodes)
-        {
-            var min = new Vector2(nodes.Min(x => x.Position.x), nodes.Min(x => x.Position.y));
-            var max = new Vector2(nodes.Max(x => x.Position.x), nodes.Max(x => x.Position.y));
-            return max - min;
-        }
+        private Vector2 GetPositionOffset(IReadOnlyCollection<TinyNode> nodes) =>
+            _mousePosition - new Vector2(nodes.Min(x => x.Position.x), nodes.Min(x => x.Position.y));
 
         public void Clear()
         {
