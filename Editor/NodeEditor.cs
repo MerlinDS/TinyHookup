@@ -38,11 +38,11 @@ namespace TinyHookup.Editor
                 return;
             
             var node = serializedObject.targetObject as TinyNode;
-            foreach (var edge in Context.Graph.GetEdges(node.Id))
+            foreach (TinyEdge edge in Context.Graph.GetEdges(node.Id))
             {
                 var inNode = Context.Graph.GetNode(edge.In);
                 EditorGUILayout.BeginHorizontal();
-                if(GUILayout.Button("=>", GUILayout.Width(28)))
+                if(GUILayout.Button($"{edge.Weight}>", GUILayout.Width(32)))
                     Context.Selector.AddSingle(edge);
                 if (GUILayout.Button(inNode.Title))
                     Context.Selector.AddSingle(inNode);
