@@ -67,6 +67,7 @@ namespace TinyHookup.Editor
                 case 0:
                     Clear();
                     CreateGraph();
+                    OnNew();
                     break;
                 case 1:
                     OnLoad();
@@ -107,7 +108,10 @@ namespace TinyHookup.Editor
             base.Clear();
         }
 
+        protected abstract void OnNew();
         protected abstract void OnLoad();
         protected abstract void OnSave();
+        
+        
     }
 }
