@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,6 +10,8 @@ namespace TinyHookup.Editor
     {
         private readonly TinyBuffer _buffer = new TinyBuffer();
         private readonly TinyEventProcessor _eventProcessor = new TinyEventProcessor();
+        
+        private readonly Dictionary<string, Action> _menuActions = new Dictionary<string, Action>();
 
         protected virtual void OnEnable()
         {
@@ -21,7 +25,11 @@ namespace TinyHookup.Editor
                 Selection.SetActiveObjectWithContext(Graph.GetEdge(@in, @out), this);
         }
 
-        protected virtual void OnDisable() => Clear();
+        protected virtual void OnDisable()
+        {
+            _menuActions.Clear();
+            Clear();
+        }
 
         private void OnGUI()
         {
@@ -59,27 +67,26 @@ namespace TinyHookup.Editor
         private void DrawMenu()
         {
             GUI.BeginGroup(new Rect(0, 0, position.width, 24), Label, "ProgressBarBack");
-            var selected = GUI.Toolbar(new Rect(2, 2, position.width / 4, 20), -1, new[] {"New", "Load", "Save"});
+            var labels = _menuActions.Keys.ToArray();
+            var selected = GUI.Toolbar(new Rect(2, 2, position.width / 4, 20), -1, labels);
             GUI.EndGroup();
 
-            switch (selected)
-            {
-                case 0:
-                    Clear();
-                    CreateGraph();
-                    OnNew();
-                    break;
-                case 1:
-                    OnLoad();
-                    break;
-                case 2:
-                    OnSave();
-                    break;
-                default:
-                    return;
-            }
+            if(selected < 0)
+                return;
+            
+            _menuActions[labels[selected]]?.Invoke();
         }
 
+        protected void SetMenuAction(string label, Action action)
+        {
+            if (_menuActions.ContainsKey(label))
+            {
+                _menuActions[label] = action;
+                return;
+            }
+            _menuActions.Add(label, action);
+        }
+        
         private void DrawGraph(bool selected)
         {
             if (Graph == null)
@@ -107,10 +114,6 @@ namespace TinyHookup.Editor
             _buffer.Clear();
             base.Clear();
         }
-
-        protected abstract void OnNew();
-        protected abstract void OnLoad();
-        protected abstract void OnSave();
         
         
     }
