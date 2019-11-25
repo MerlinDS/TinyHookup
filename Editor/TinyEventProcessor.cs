@@ -42,7 +42,7 @@ namespace TinyHookup.Editor
             // ReSharper disable once SwitchStatementMissingSomeCases
             switch (@event.type)
             {
-                case EventType.KeyUp:
+                case EventType.KeyDown:
 
                     if (@event.keyCode == KeyCode.Delete)
                     {
