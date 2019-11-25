@@ -58,7 +58,7 @@ namespace TinyHookup.Editor
 
                     break;
                 case EventType.ScrollWheel:
-                    Scale = Mathf.Clamp(Scale + @event.delta.y * 0.01F, 0.25F, 1);
+                    Scale = Mathf.Clamp(Scale + @event.delta.y * -0.01F, 0.25F, 1);
                     ZoomOffset = new Vector2(1 / Scale, 1 / Scale);
                     GUI.changed = true;
                     break;
