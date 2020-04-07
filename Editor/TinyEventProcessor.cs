@@ -151,7 +151,7 @@ namespace TinyHookup.Editor
             if (NewEdge)
             {
                 var @in = _graph.GetNodeUnder(Zoomed(CurrentPosition));
-                if (@in != null)
+                if (@in != null && @in.Type == TinyNodeType.Regular)
                     _graph.CreateEdge(_graph.GetNodeUnder(Zoomed(StartPosition)), @in);
                 else
                     ProcessContextMenu(Zoomed(CurrentPosition));
@@ -177,6 +177,8 @@ namespace TinyHookup.Editor
                 if (connect)
                     _graph.CreateEdge(@out, @in);
             });
+            genericMenu.AddItem(new GUIContent("Note"), false, () => 
+                                    _graph.CreateNode("Note", mousePosition, type:TinyNodeType.Note));
             /*if (@out != null)
             {
                 genericMenu.AddItem(new GUIContent("Copy"), false, () => Copy(@out));

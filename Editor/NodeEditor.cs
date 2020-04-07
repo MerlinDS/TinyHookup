@@ -27,6 +27,10 @@ namespace TinyHookup.Editor
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();
 
+            var node = serializedObject.targetObject as TinyNode;
+            if(node != null && node.Type != TinyNodeType.Regular)
+                return;
+            
             OnDrawEdges();
             base.OnInspectorGUI();
         }

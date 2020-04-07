@@ -35,9 +35,10 @@ namespace TinyHookup.Editor
             _edges.Clear();
         }
 
-        public TinyNode CreateNode(string label, Vector2 position, object data = default)
+        public TinyNode CreateNode(string label, Vector2 position, object data = default, TinyNodeType type = TinyNodeType.Regular)
         {
             var node = TinyNode.Create(label, position);
+            node.Type = type;
             node.Data = data;
             OnCreateNode?.Invoke(node);
             _nodes.Add(node);

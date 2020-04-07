@@ -9,9 +9,18 @@ namespace TinyHookup.Editor
 
         public static void DrawNode(TinyNode node, bool selected, bool hasIn = false, bool hasOut = false)
         {
-            GUI.Box(GetNodeRect(node.Position), node.Title, selected ? Styles.SelectedNode : Styles.UnSelectedNode);
-            GUI.Toggle(GetInRect(node.Position), hasIn, string.Empty, Styles.NodeIn);
-            GUI.Toggle(GetOutRect(node.Position), hasOut, string.Empty, Styles.NodeOut);
+            if (node.Type == TinyNodeType.Regular)
+            {
+                GUI.Box(GetNodeRect(node.Position), node.Title, selected ? Styles.SelectedNode : Styles.UnSelectedNode);
+                GUI.Toggle(GetInRect(node.Position), hasIn, string.Empty, Styles.NodeIn);
+                GUI.Toggle(GetOutRect(node.Position), hasOut, string.Empty, Styles.NodeOut);
+                return;
+            }
+
+            if (node.Type == TinyNodeType.Note)
+            {
+                GUI.Box(GetNodeRect(node.Position), node.Title, selected ? Styles.SelectedNote : Styles.UnSelectedNote);
+            }
         }
 
         public static Rect GetNodeRect(Vector2 position) =>
@@ -102,6 +111,11 @@ namespace TinyHookup.Editor
 
             public readonly GUIStyle UnSelectedNode;
             public readonly GUIStyle SelectedNode;
+            
+            public readonly GUIStyle UnSelectedNote;
+            public readonly GUIStyle SelectedNote;
+            
+            
             public readonly GUIStyle NodeIn;
             public readonly GUIStyle NodeOut;
 
@@ -110,7 +124,13 @@ namespace TinyHookup.Editor
                 UnSelectedNode = "flow node 0";
                 SelectedNode = "flow node 1";
                 NodeOut = NodeIn = "Radio";
-//                NodeOut.active.
+                UnSelectedNote = "Label";
+                SelectedNote = "PR TextField";
+                SelectedNote.fontSize = UnSelectedNote.fontSize = 24;
+                SelectedNote.fontStyle = FontStyle.Bold;
+                UnSelectedNote.fontStyle = FontStyle.Bold;
+                SelectedNote.normal.textColor = Color.blue;
+                UnSelectedNote.normal.textColor = Color.black;
             }
         }
 

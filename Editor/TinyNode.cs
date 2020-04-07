@@ -7,6 +7,8 @@ namespace TinyHookup.Editor
     {
         public Guid Id;
 
+        public TinyNodeType Type;
+
         public string Title;
 
         public Vector2 Position;
