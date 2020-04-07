@@ -126,9 +126,9 @@ namespace TinyHookup.Editor
                 NodeOut = NodeIn = "Radio";
                 UnSelectedNote = "Label";
                 SelectedNote = "PR TextField";
-                SelectedNote.fontSize = UnSelectedNote.fontSize = 24;
-                SelectedNote.fontStyle = FontStyle.Bold;
-                UnSelectedNote.fontStyle = FontStyle.Bold;
+                SelectedNote.fontSize = UnSelectedNote.fontSize = 20;
+                SelectedNote.fontStyle = FontStyle.Normal;
+                UnSelectedNote.fontStyle = FontStyle.Normal;
                 SelectedNote.normal.textColor = Color.blue;
                 UnSelectedNote.normal.textColor = Color.black;
             }
